@@ -1,11 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
-
 import 'package:image_picker/image_picker.dart';
-import 'package:teachablemachine/Mri_widgets/mri_photo_view.dart';
 import '../classifier/classifier.dart';
 import '../styles/styles.dart';
+import 'mri_photo_view.dart';
 
 const _labelsFileName = 'assets/labels.txt';
 const _modelFileName = 'model_unquant.tflite';
@@ -28,9 +27,8 @@ class _MRIRecogniserState extends State<MRIRecogniser> {
   final picker = ImagePicker();
   File? _selectedImageFile;
 
-  // Result
   _ResultStatus _resultStatus = _ResultStatus.notStarted;
-  String _tumorLabel = ''; // Name of Error Message
+  String _tumorLabel = '';
   double _accuracy = 0.0;
 
   late Classifier? _classifier;
@@ -42,12 +40,6 @@ class _MRIRecogniserState extends State<MRIRecogniser> {
   }
 
   Future<void> _loadClassifier() async {
-    debugPrint(
-      'Start loading of Classifier with '
-      'labels at $_labelsFileName, '
-      'model at $_modelFileName',
-    );
-
     final classifier = await Classifier.loadWith(
       labelsFileName: _labelsFileName,
       modelFileName: _modelFileName,
@@ -58,35 +50,34 @@ class _MRIRecogniserState extends State<MRIRecogniser> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Container(
-      color: Colors.white,
-      width: double.infinity,
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          const SizedBox(height: 20),
-          _buildPhotolView(),
-          const SizedBox(height: 10),
-          _buildResultView(),
-          if (_resultStatus == _ResultStatus.found ||
-              _resultStatus == _ResultStatus.notFound) ...[
-            // Show alert box only when a result is available
+      body: Container(
+        color: Colors.white,
+        width: double.infinity,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            const SizedBox(height: 20),
+            _buildPhotolView(),
             const SizedBox(height: 10),
-            _buildAlertBox(),
+            _buildResultView(),
+            if (_resultStatus == _ResultStatus.found || _resultStatus == _ResultStatus.notFound) ...[
+              const SizedBox(height: 10),
+              _buildAlertBox(),
+            ],
+            const SizedBox(height: 10),
+            _buildPickPhotoButton(
+              title: 'Take a photo',
+              source: ImageSource.camera,
+            ),
+            _buildPickPhotoButton(
+              title: 'Pick from gallery',
+              source: ImageSource.gallery,
+            ),
+            const Spacer(),
           ],
-          const SizedBox(height: 10),
-          _buildPickPhotoButton(
-            title: 'Take a photo',
-            source: ImageSource.camera,
-          ),
-          _buildPickPhotoButton(
-            title: 'Pick from gallery',
-            source: ImageSource.gallery,
-          ),
-          const Spacer(),
-        ],
+        ),
       ),
-    ));
+    );
   }
 
   Widget _buildPhotolView() {
@@ -178,11 +169,8 @@ class _MRIRecogniserState extends State<MRIRecogniser> {
       title = 'Fail to recognise';
     } else if (_resultStatus == _ResultStatus.found) {
       title = _tumorLabel;
-    } else {
-      title = '';
     }
 
-    //
     var accuracyLabel = '';
     if (_resultStatus == _ResultStatus.found) {
       accuracyLabel = 'Accuracy: ${(_accuracy * 100).toStringAsFixed(2)}%';
@@ -203,10 +191,10 @@ class _MRIRecogniserState extends State<MRIRecogniser> {
       padding: const EdgeInsets.all(10),
       width: 300,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFE5E5), // Light red background
+        color: const Color(0xFFFFE5E5),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: const Color(0xFFFF7A7A), // Slightly darker red border
+          color: const Color(0xFFFF7A7A),
           width: 1,
         ),
       ),
